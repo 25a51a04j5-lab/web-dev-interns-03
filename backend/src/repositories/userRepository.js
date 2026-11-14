@@ -6,6 +6,7 @@ let nextId = 1;
 function toUser(row) {
   return row && {
     id: Number(row.id),
+    companyId: row.company_id === null ? null : Number(row.company_id),
     name: row.name,
     email: row.email,
     passwordHash: row.password_hash,
@@ -28,6 +29,7 @@ async function create({ name, email, passwordHash, role }) {
 
   const user = {
     id: nextId++,
+    companyId: null,
     name,
     email,
     passwordHash,

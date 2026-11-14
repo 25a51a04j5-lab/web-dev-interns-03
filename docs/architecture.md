@@ -144,9 +144,7 @@ Expected status meanings:
 | `GET` | `/api/jobs/:id` | Public or staff | Read a visible job |
 | `POST` | `/api/jobs` | Admin, HR | Create a job draft |
 | `PATCH` | `/api/jobs/:id` | Admin, HR | Edit a job |
-| `POST` | `/api/jobs/:id/publish` | Admin, HR | Publish a draft |
-| `POST` | `/api/jobs/:id/close` | Admin, HR | Close a published job |
-| `POST` | `/api/jobs/:id/archive` | Admin, HR | Archive a job |
+| `POST` | `/api/jobs/:id/status` | Admin, HR | Perform a permitted job status transition |
 
 ### Candidate profiles and applications
 
@@ -302,4 +300,3 @@ notification_events
 Foreign keys, unique constraints, status checks, and timestamps belong in the database as
 well as in application validation. The database design and migrations will be delivered in a
 separate implementation part.
-

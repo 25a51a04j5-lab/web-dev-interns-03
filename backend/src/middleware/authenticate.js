@@ -29,7 +29,13 @@ async function authenticate(req, res, next) {
       throw AppError.unauthorized('Account not found or disabled');
     }
 
-    req.user = { id: user.id, email: user.email, role: user.role, name: user.name };
+    req.user = {
+      id: user.id,
+      companyId: user.companyId,
+      email: user.email,
+      role: user.role,
+      name: user.name,
+    };
     next();
   } catch (err) {
     next(err);
