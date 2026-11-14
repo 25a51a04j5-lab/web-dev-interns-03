@@ -21,7 +21,7 @@ async function create({ name, email, passwordHash, role }) {
     const { rows } = await database.query(
       `INSERT INTO users (name, email, password_hash, role)
        VALUES ($1, $2, $3, $4)
-       RETURNING id, name, email, password_hash, role, is_active, created_at`,
+       RETURNING id, company_id, name, email, password_hash, role, is_active, created_at`,
       [name, email, passwordHash, role],
     );
     return toUser(rows[0]);
@@ -44,7 +44,7 @@ async function create({ name, email, passwordHash, role }) {
 async function findByEmail(email) {
   if (database.isDatabaseConfigured()) {
     const { rows } = await database.query(
-      `SELECT id, name, email, password_hash, role, is_active, created_at
+      `SELECT id, company_id, name, email, password_hash, role, is_active, created_at
        FROM users
        WHERE email = $1`,
       [email],
@@ -59,7 +59,7 @@ async function findByEmail(email) {
 async function findById(id) {
   if (database.isDatabaseConfigured()) {
     const { rows } = await database.query(
-      `SELECT id, name, email, password_hash, role, is_active, created_at
+      `SELECT id, company_id, name, email, password_hash, role, is_active, created_at
        FROM users
        WHERE id = $1`,
       [id],
@@ -73,7 +73,7 @@ async function findById(id) {
 async function list() {
   if (database.isDatabaseConfigured()) {
     const { rows } = await database.query(
-      `SELECT id, name, email, password_hash, role, is_active, created_at
+      `SELECT id, company_id, name, email, password_hash, role, is_active, created_at
        FROM users
        ORDER BY id`,
     );
