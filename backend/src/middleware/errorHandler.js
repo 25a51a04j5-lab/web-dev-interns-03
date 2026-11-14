@@ -13,6 +13,16 @@ function errorHandler(err, req, res, next) {
     err = AppError.badRequest('Request body is not valid JSON');
   }
 
+  if (err.code === 'LIMIT_FILE_SIZE') {
+    return res.status(400).json({
+      error: {
+        code: 'VALIDATION_ERROR',
+        message: 'Resume file is too large',
+        details: [{ field: 'resume', message: 'Resume must be 5 MB or smaller' }],
+      },
+    });
+  }
+
   if (err instanceof AppError) {
     return res.status(err.status).json({
       error: { code: err.code, message: err.message, ...(err.details && { details: err.details }) },
