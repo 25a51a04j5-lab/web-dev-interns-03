@@ -60,11 +60,14 @@ app.use(errorHandler);      // must be the LAST middleware
 
 ## Connecting to the real database
 
-`src/repositories/userRepository.js` is an in-memory placeholder. After Krishna's `users` migration lands,
-replace the function bodies with SQL queries (same function names and return shapes):
-`create`, `findByEmail`, `findById`, `list`, `setActive`.
-Expected columns: `id, name, email (unique), password_hash, role, is_active, created_at`.
-Return `passwordHash` / `isActive` in camelCase from the repository.
+The repository uses PostgreSQL when `DATABASE_URL` is configured. Apply
+`database/migrations/001_initial_schema.sql`, set `DATABASE_URL` in `backend/.env`, and start
+the backend. The repository methods keep their existing return shapes while translating
+`password_hash` and `is_active` to `passwordHash` and `isActive`.
+
+When `DATABASE_URL` is absent, the development/test-only in-memory adapter is used so the
+authentication tests can run without a local database. Do not use that fallback in a
+production deployment.
 
 ## Run and test
 
@@ -78,7 +81,6 @@ npm start
 
 ## Known gaps (future work)
 
-- In-memory user store (replaced once the DB schema is merged)
 - No login rate limiting / account lockout
 - No refresh tokens or logout/token revocation (short expiry is the mitigation)
 - No password reset or email verification
