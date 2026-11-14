@@ -19,11 +19,11 @@ function signToken(user) {
   });
 }
 
-async function createUser({ name, email, password, role }) {
+async function createUser({ name, email, password, role, companyId = null }) {
   const existing = await userRepository.findByEmail(email);
   if (existing) throw AppError.conflict('An account with this email already exists');
   const passwordHash = await bcrypt.hash(password, env.bcryptRounds);
-  return userRepository.create({ name, email, passwordHash, role });
+  return userRepository.create({ name, email, passwordHash, role, companyId });
 }
 
 // Public sign-up: always a CANDIDATE.
@@ -33,8 +33,8 @@ async function registerCandidate({ name, email, password }) {
 }
 
 // Admin-only: create HR or Admin accounts.
-async function createStaff({ name, email, password, role }) {
-  const user = await createUser({ name, email, password, role });
+async function createStaff({ name, email, password, role, companyId = null }) {
+  const user = await createUser({ name, email, password, role, companyId });
   return { user: toPublicUser(user) };
 }
 

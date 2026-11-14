@@ -27,7 +27,7 @@ const me = wrap(async (req, res) => {
 
 const createStaff = wrap(async (req, res) => {
   const data = validateStaffCreate(req.body);
-  const result = await authService.createStaff(data);
+  const result = await authService.createStaff({ ...data, companyId: req.user.companyId });
   res.status(201).json(result);
 });
 

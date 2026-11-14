@@ -16,20 +16,20 @@ function toUser(row) {
   };
 }
 
-async function create({ name, email, passwordHash, role }) {
+async function create({ name, email, passwordHash, role, companyId = null }) {
   if (database.isDatabaseConfigured()) {
     const { rows } = await database.query(
-      `INSERT INTO users (name, email, password_hash, role)
-       VALUES ($1, $2, $3, $4)
+      `INSERT INTO users (company_id, name, email, password_hash, role)
+       VALUES ($1, $2, $3, $4, $5)
        RETURNING id, company_id, name, email, password_hash, role, is_active, created_at`,
-      [name, email, passwordHash, role],
+      [companyId, name, email, passwordHash, role],
     );
     return toUser(rows[0]);
   }
 
   const user = {
     id: nextId++,
-    companyId: null,
+    companyId,
     name,
     email,
     passwordHash,
