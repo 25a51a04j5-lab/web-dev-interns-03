@@ -1,6 +1,37 @@
 const AppError = require('../utils/AppError');
 
 const STATUSES = ['DRAFT', 'PUBLISHED', 'CLOSED', 'ARCHIVED'];
+const CREATE_FIELDS = [
+  'title',
+  'description',
+  'requirements',
+  'location',
+  'employmentType',
+  'closesAt',
+];
+const UPDATE_FIELDS = CREATE_FIELDS;
+
+function isPlainObject(value) {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+function assertPlainObject(body) {
+  if (!isPlainObject(body)) {
+    throw AppError.badRequest('Validation failed', [
+      { field: 'body', message: 'Request body must be a JSON object' },
+    ]);
+  }
+}
+
+function rejectUnknownFields(body, allowedFields) {
+  const unknown = Object.keys(body).filter((field) => !allowedFields.includes(field));
+  if (unknown.length) {
+    throw AppError.badRequest('Validation failed', unknown.map((field) => ({
+      field,
+      message: 'Field cannot be submitted',
+    })));
+  }
+}
 
 function requiredString(body, field, details, maxLength) {
   if (typeof body[field] !== 'string' || !body[field].trim()) {
@@ -12,75 +43,95 @@ function requiredString(body, field, details, maxLength) {
   }
 }
 
+function optionalString(body, field, details, maxLength) {
+  if (body[field] === undefined) return;
+  if (body[field] !== null && typeof body[field] !== 'string') {
+    details.push({ field, message: `${field} must be a string or null` });
+    return;
+  }
+  if (typeof body[field] === 'string' && body[field].trim().length > maxLength) {
+    details.push({ field, message: `${field} must be ${maxLength} characters or fewer` });
+  }
+}
+
+function validateDateField(body, field, details) {
+  if (body[field] === undefined || body[field] === null) return;
+  if (typeof body[field] !== 'string' || Number.isNaN(Date.parse(body[field]))) {
+    details.push({ field, message: `${field} must be a valid date string or null` });
+  }
+}
+
+function normalizeOptionalString(value) {
+  if (value === undefined || value === null) return null;
+  return value.trim() || null;
+}
+
 function validateJobCreate(body = {}) {
+  assertPlainObject(body);
+  rejectUnknownFields(body, CREATE_FIELDS);
+
   const details = [];
   requiredString(body, 'title', details, 180);
   requiredString(body, 'description', details, 10000);
   requiredString(body, 'requirements', details, 10000);
-  if (body.location !== undefined && typeof body.location !== 'string') {
-    details.push({ field: 'location', message: 'location must be a string' });
-  }
-  if (body.employmentType !== undefined && typeof body.employmentType !== 'string') {
-    details.push({ field: 'employmentType', message: 'employmentType must be a string' });
-  }
-  if (body.closesAt !== undefined && Number.isNaN(Date.parse(body.closesAt))) {
-    details.push({ field: 'closesAt', message: 'closesAt must be a valid date' });
-  }
+  optionalString(body, 'location', details, 160);
+  optionalString(body, 'employmentType', details, 80);
+  validateDateField(body, 'closesAt', details);
+
   if (details.length) throw AppError.badRequest('Validation failed', details);
+
   return {
     title: body.title.trim(),
     description: body.description.trim(),
     requirements: body.requirements.trim(),
-    location: body.location?.trim() || null,
-    employmentType: body.employmentType?.trim() || null,
-    closesAt: body.closesAt || null,
+    location: normalizeOptionalString(body.location),
+    employmentType: normalizeOptionalString(body.employmentType),
+    closesAt: body.closesAt ?? null,
   };
 }
 
 function validateJobUpdate(body = {}) {
-  const allowed = ['title', 'description', 'requirements', 'location', 'employmentType', 'closesAt'];
-  const unknown = Object.keys(body).filter((key) => !allowed.includes(key));
-  if (unknown.length) {
-    throw AppError.badRequest('Validation failed', unknown.map((field) => ({
-      field,
-      message: 'Field cannot be updated',
-    })));
-  }
+  assertPlainObject(body);
+  rejectUnknownFields(body, UPDATE_FIELDS);
+
   const details = [];
-  for (const field of ['title', 'description', 'requirements']) {
-    if (body[field] !== undefined) requiredString(body, field, details, 10000);
-  }
-  for (const field of ['location', 'employmentType']) {
-    if (body[field] !== undefined && typeof body[field] !== 'string') {
-      details.push({ field, message: `${field} must be a string` });
-    }
-  }
-  if (body.closesAt !== undefined && body.closesAt !== null && Number.isNaN(Date.parse(body.closesAt))) {
-    details.push({ field: 'closesAt', message: 'closesAt must be a valid date' });
-  }
   if (!Object.keys(body).length) {
     details.push({ field: 'body', message: 'At least one field is required' });
   }
+
+  for (const field of ['title', 'description', 'requirements']) {
+    if (body[field] !== undefined) requiredString(body, field, details, field === 'title' ? 180 : 10000);
+  }
+  optionalString(body, 'location', details, 160);
+  optionalString(body, 'employmentType', details, 80);
+  validateDateField(body, 'closesAt', details);
+
   if (details.length) throw AppError.badRequest('Validation failed', details);
-  return {
-    ...body,
-    title: body.title?.trim(),
-    description: body.description?.trim(),
-    requirements: body.requirements?.trim(),
-    location: body.location?.trim(),
-    employmentType: body.employmentType?.trim(),
-  };
+
+  const normalized = { ...body };
+  for (const field of ['title', 'description', 'requirements']) {
+    if (normalized[field] !== undefined) normalized[field] = normalized[field].trim();
+  }
+  if ('location' in normalized) normalized.location = normalizeOptionalString(normalized.location);
+  if ('employmentType' in normalized) normalized.employmentType = normalizeOptionalString(normalized.employmentType);
+  if ('closesAt' in normalized && normalized.closesAt === undefined) normalized.closesAt = null;
+
+  return normalized;
 }
 
 function validateJobId(value) {
   if (!/^\d+$/.test(String(value))) {
-    throw AppError.badRequest('Validation failed', [{ field: 'id', message: 'id must be a number' }]);
+    throw AppError.badRequest('Validation failed', [{ field: 'id', message: 'id must be a positive integer' }]);
   }
-  return Number(value);
+  const id = Number(value);
+  if (!Number.isSafeInteger(id) || id < 1) {
+    throw AppError.badRequest('Validation failed', [{ field: 'id', message: 'id must be a positive integer' }]);
+  }
+  return id;
 }
 
 function validateStatus(status) {
-  if (!STATUSES.includes(status)) {
+  if (typeof status !== 'string' || !STATUSES.includes(status)) {
     throw AppError.badRequest('Validation failed', [{ field: 'status', message: 'Invalid job status' }]);
   }
   return status;
