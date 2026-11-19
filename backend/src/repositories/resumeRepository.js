@@ -18,14 +18,14 @@ function toResume(row) {
 
 async function create({ candidateId, originalFilename, storageKey, mimeType, sizeBytes }) {
   if (database.isDatabaseConfigured()) {
-    const { rows } = await database.query(
+    const { insertId } = await database.query(
       `INSERT INTO resumes
         (candidate_id, original_filename, storage_key, mime_type, size_bytes)
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING *`,
+       VALUES (?, ?, ?, ?, ?)`,
       [candidateId, originalFilename, storageKey, mimeType, sizeBytes],
     );
-    return toResume(rows[0]);
+    const { rows: created } = await database.query('SELECT * FROM resumes WHERE id = ?', [insertId]);
+    return toResume(created[0]);
   }
   const resume = {
     id: nextId++,
@@ -44,7 +44,7 @@ async function findLatestByCandidate(candidateId) {
   if (database.isDatabaseConfigured()) {
     const { rows } = await database.query(
       `SELECT * FROM resumes
-       WHERE candidate_id = $1
+       WHERE candidate_id = ?
        ORDER BY uploaded_at DESC
        LIMIT 1`,
       [candidateId],
@@ -58,7 +58,7 @@ async function findLatestByCandidate(candidateId) {
 
 async function findById(id) {
   if (database.isDatabaseConfigured()) {
-    const { rows } = await database.query('SELECT * FROM resumes WHERE id = $1', [id]);
+    const { rows } = await database.query('SELECT * FROM resumes WHERE id = ?', [id]);
     return toResume(rows[0]);
   }
   return resumes.has(Number(id)) ? { ...resumes.get(Number(id)) } : null;
@@ -70,7 +70,7 @@ async function findByApplication(applicationId) {
       `SELECT r.*
        FROM resumes r
        JOIN applications a ON a.candidate_id = r.candidate_id
-       WHERE a.id = $1
+       WHERE a.id = ?
        ORDER BY r.uploaded_at DESC
        LIMIT 1`,
       [applicationId],

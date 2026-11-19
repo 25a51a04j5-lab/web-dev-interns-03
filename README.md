@@ -10,10 +10,10 @@ The repository currently includes:
 
 - Requirements and role-specific user journeys
 - Layered backend architecture and API route contract
-- PostgreSQL initial schema and synthetic seed data
+- MySQL initial schema and synthetic seed data
 - JWT authentication with bcrypt password hashing
 - Admin, HR, and Candidate role enforcement
-- PostgreSQL-backed auth repository with a test-only in-memory fallback
+- MySQL-backed repositories with a test-only in-memory fallback
 - Job creation, publishing, closing, archiving, and public visibility
 - Candidate applications and controlled pipeline transitions
 - Private PDF resume upload and protected downloads
@@ -29,7 +29,7 @@ Detailed design documents:
 
 ## Technology stack
 
-- Backend: Node.js, Express, PostgreSQL, JSON Web Tokens, bcryptjs
+- Backend: Node.js, Express, MySQL, JSON Web Tokens, bcryptjs
 - Frontend: React and Vite
 - Testing: Jest and Supertest
 - File storage: private local storage for development; database stores resume metadata
@@ -48,7 +48,7 @@ backend/
     validators/      Request validation
   tests/             Backend unit/integration-style API tests
 database/
-  migrations/       PostgreSQL schema
+  migrations/       MySQL schema
   seed/             Synthetic development data
 frontend/
   src/              React dashboard shell
@@ -61,7 +61,7 @@ uploads/             Ignored private local file storage
 Requirements:
 
 - Node.js 18 or newer
-- PostgreSQL 14 or newer for persistent development
+- MySQL 8 or newer for persistent development
 
 Install dependencies and configure the environment:
 
@@ -71,22 +71,27 @@ npm install
 cp .env.example .env
 ```
 
-Set a real `DATABASE_URL` and a long random `JWT_SECRET` in `backend/.env`:
+Set the MySQL connection settings and a long random `JWT_SECRET` in `backend/.env`:
 
 ```env
 PORT=5000
 NODE_ENV=development
-DATABASE_URL=postgres://username:password@localhost:5432/ats
+DATABASE_HOST=localhost
+DATABASE_PORT=3306
+DATABASE_NAME=ats
+DATABASE_USER=root
+DATABASE_PASSWORD=your-password
 JWT_SECRET=replace-with-a-long-random-value
 JWT_EXPIRES_IN=1h
 BCRYPT_ROUNDS=10
 ```
 
-Apply the schema and synthetic data from the repository root:
+Create the database, then apply the schema and synthetic data from the repository root:
 
 ```bash
-psql "$DATABASE_URL" -f database/migrations/001_initial_schema.sql
-psql "$DATABASE_URL" -f database/seed/001_demo_seed.sql
+mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS ats"
+mysql -u root -p ats < database/migrations/001_initial_schema.sql
+mysql -u root -p ats < database/seed/001_demo_seed.sql
 ```
 
 Start the API:
@@ -102,8 +107,8 @@ Health check:
 curl http://localhost:5000/api/health
 ```
 
-For authentication-only local tests, `DATABASE_URL` may be left empty. The development/test
-in-memory adapter will be used; it must not be used for production.
+For local tests, leave the MySQL settings empty. The development/test in-memory adapter will be
+used; it must not be used for production.
 
 ## Frontend setup
 

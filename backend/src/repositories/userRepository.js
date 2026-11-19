@@ -18,13 +18,17 @@ function toUser(row) {
 
 async function create({ name, email, passwordHash, role, companyId = null }) {
   if (database.isDatabaseConfigured()) {
-    const { rows } = await database.query(
+    const { insertId } = await database.query(
       `INSERT INTO users (company_id, name, email, password_hash, role)
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING id, company_id, name, email, password_hash, role, is_active, created_at`,
+       VALUES (?, ?, ?, ?, ?)`,
       [companyId, name, email, passwordHash, role],
     );
-    return toUser(rows[0]);
+    const { rows: created } = await database.query(
+      `SELECT id, company_id, name, email, password_hash, role, is_active, created_at
+       FROM users WHERE id = ?`,
+      [insertId],
+    );
+    return toUser(created[0]);
   }
 
   const user = {
@@ -46,7 +50,7 @@ async function findByEmail(email) {
     const { rows } = await database.query(
       `SELECT id, company_id, name, email, password_hash, role, is_active, created_at
        FROM users
-       WHERE email = $1`,
+       WHERE email = ?`,
       [email],
     );
     return toUser(rows[0]);
@@ -61,7 +65,7 @@ async function findById(id) {
     const { rows } = await database.query(
       `SELECT id, company_id, name, email, password_hash, role, is_active, created_at
        FROM users
-       WHERE id = $1`,
+       WHERE id = ?`,
       [id],
     );
     return toUser(rows[0]);
@@ -87,9 +91,9 @@ async function setActive(id, isActive) {
   if (database.isDatabaseConfigured()) {
     await database.query(
       `UPDATE users
-       SET is_active = $2, updated_at = NOW()
-       WHERE id = $1`,
-      [id, isActive],
+       SET is_active = ?, updated_at = NOW()
+       WHERE id = ?`,
+      [isActive, id],
     );
     return;
   }

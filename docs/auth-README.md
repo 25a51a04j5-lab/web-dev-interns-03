@@ -60,9 +60,9 @@ app.use(errorHandler);      // must be the LAST middleware
 
 ## Connecting to the real database
 
-The repository uses PostgreSQL when `DATABASE_URL` is configured. Apply
-`database/migrations/001_initial_schema.sql`, set `DATABASE_URL` in `backend/.env`, and start
-the backend. The repository methods keep their existing return shapes while translating
+The repository uses MySQL when the database settings are configured. Apply
+`database/migrations/001_initial_schema.sql`, set the MySQL settings in `backend/.env`, and
+start the backend. The repository methods keep their existing return shapes while translating
 `password_hash` and `is_active` to `passwordHash` and `isActive`.
 
 When `DATABASE_URL` is absent, the development/test-only in-memory adapter is used so the

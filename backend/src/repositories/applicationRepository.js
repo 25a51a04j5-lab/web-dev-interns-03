@@ -31,13 +31,15 @@ function toHistory(row) {
 
 async function create({ jobId, candidateId, coverLetter }) {
   if (database.isDatabaseConfigured()) {
-    const { rows } = await database.query(
+    const { insertId } = await database.query(
       `INSERT INTO applications (job_id, candidate_id, cover_letter)
-       VALUES ($1, $2, $3)
-       RETURNING *`,
+       VALUES (?, ?, ?)`,
       [jobId, candidateId, coverLetter],
     );
-    const application = toApplication(rows[0]);
+    const { rows: created } = await database.query(
+      'SELECT * FROM applications WHERE id = ?', [insertId],
+    );
+    const application = toApplication(created[0]);
     await addHistory(application.id, candidateId, null, 'APPLIED', 'Application submitted.');
     return application;
   }
@@ -58,7 +60,7 @@ async function create({ jobId, candidateId, coverLetter }) {
 
 async function findById(id) {
   if (database.isDatabaseConfigured()) {
-    const { rows } = await database.query('SELECT * FROM applications WHERE id = $1', [id]);
+    const { rows } = await database.query('SELECT * FROM applications WHERE id = ?', [id]);
     return toApplication(rows[0]);
   }
   return applications.has(Number(id)) ? { ...applications.get(Number(id)) } : null;
@@ -66,8 +68,8 @@ async function findById(id) {
 
 async function findByJobAndCandidate(jobId, candidateId) {
   if (database.isDatabaseConfigured()) {
-    const { rows } = await database.query(
-      'SELECT * FROM applications WHERE job_id = $1 AND candidate_id = $2',
+    const { insertId } = await database.query(
+      'SELECT * FROM applications WHERE job_id = ? AND candidate_id = ?',
       [jobId, candidateId],
     );
     return toApplication(rows[0]);
@@ -88,11 +90,11 @@ async function list() {
 async function updateStage(id, stage) {
   if (database.isDatabaseConfigured()) {
     const { rows } = await database.query(
-      `UPDATE applications SET stage = $2, updated_at = NOW()
-       WHERE id = $1 RETURNING *`,
-      [id, stage],
+      `UPDATE applications SET stage = ?, updated_at = NOW()
+       WHERE id = ?`,
+      [stage, id],
     );
-    return toApplication(rows[0]);
+    return findById(id);
   }
   const application = applications.get(Number(id));
   if (!application) return null;
@@ -107,11 +109,13 @@ async function addHistory(applicationId, changedBy, previousStage, newStage, not
     const { rows } = await database.query(
       `INSERT INTO application_stage_history
         (application_id, changed_by, previous_stage, new_stage, note)
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING *`,
+       VALUES (?, ?, ?, ?, ?)`,
       [applicationId, changedBy, previousStage, newStage, note],
     );
-    return toHistory(rows[0]);
+    const { rows: created } = await database.query(
+      'SELECT * FROM application_stage_history WHERE id = ?', [insertId],
+    );
+    return toHistory(created[0]);
   }
   const history = {
     id: nextHistoryId++,
@@ -132,7 +136,7 @@ async function getHistory(applicationId) {
   if (database.isDatabaseConfigured()) {
     const { rows } = await database.query(
       `SELECT * FROM application_stage_history
-       WHERE application_id = $1 ORDER BY changed_at`,
+       WHERE application_id = ? ORDER BY changed_at`,
       [applicationId],
     );
     return rows.map(toHistory);
