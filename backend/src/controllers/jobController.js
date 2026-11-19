@@ -11,13 +11,18 @@ const {
 const wrap = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 
 const list = wrap(async (req, res) => {
-  const includeUnpublished = req.user && [ROLES.ADMIN, ROLES.HR].includes(req.user.role);
-  res.json({ jobs: await jobRepository.list({ includeUnpublished }) });
+  const isStaff = req.user && [ROLES.ADMIN, ROLES.HR].includes(req.user.role);
+  res.json({
+    jobs: await jobRepository.list({
+      includeUnpublished: Boolean(isStaff),
+      companyId: isStaff ? req.user.companyId : undefined,
+    }),
+  });
 });
 
 const get = wrap(async (req, res) => {
   const id = validateJobId(req.params.id);
-  const job = await jobService.getVisibleJob(id, Boolean(req.user));
+  const job = await jobService.getVisibleJob(id, req.user);
   res.json({ job });
 });
 
@@ -27,7 +32,11 @@ const create = wrap(async (req, res) => {
 });
 
 const update = wrap(async (req, res) => {
-  const job = await jobService.updateJob(validateJobId(req.params.id), validateJobUpdate(req.body));
+  const job = await jobService.updateJob(
+    validateJobId(req.params.id),
+    validateJobUpdate(req.body),
+    req.user,
+  );
   res.json({ job });
 });
 

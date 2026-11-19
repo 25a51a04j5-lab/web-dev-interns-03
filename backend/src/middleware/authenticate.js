@@ -42,4 +42,11 @@ async function authenticate(req, res, next) {
   }
 }
 
+async function optionalAuthenticate(req, res, next) {
+  const header = req.headers.authorization || '';
+  if (!header) return next();
+  await authenticate(req, res, next);
+}
+
 module.exports = authenticate;
+module.exports.optional = optionalAuthenticate;

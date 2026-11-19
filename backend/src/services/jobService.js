@@ -8,11 +8,15 @@ const transitions = {
   ARCHIVED: [],
 };
 
-async function getVisibleJob(id, canViewUnpublished) {
+async function getVisibleJob(id, user) {
+  const isStaff = user && (user.role === 'ADMIN' || user.role === 'HR');
   const job = await jobRepository.findById(id);
-  if (!job || (!canViewUnpublished && job.status !== 'PUBLISHED')) {
-    throw AppError.notFound('Job not found');
-  }
+  if (!job) throw AppError.notFound('Job not found');
+  if (job.status === 'PUBLISHED') return job;
+  if (!isStaff) throw AppError.notFound('Job not found');
+
+  const companyId = user.companyId || 1;
+  if (job.companyId !== companyId) throw AppError.notFound('Job not found');
   return job;
 }
 
@@ -20,10 +24,14 @@ async function createJob(data, user) {
   return jobRepository.create({ ...data, companyId: user.companyId || 1, createdBy: user.id });
 }
 
-async function updateJob(id, data) {
-  const job = await jobRepository.findById(id);
+async function updateJob(id, data, user) {
+  const companyId = user.companyId || 1;
+  const job = await jobRepository.findById(id, { companyId });
   if (!job) throw AppError.notFound('Job not found');
-  if (job.status !== 'DRAFT') throw AppError.conflict('Only draft jobs can be edited');
+  if (job.status === 'ARCHIVED') throw AppError.conflict('Archived jobs cannot be edited');
+  if (!['DRAFT', 'PUBLISHED', 'CLOSED'].includes(job.status)) {
+    throw AppError.conflict('Job status does not allow editing');
+  }
   return jobRepository.update(id, data);
 }
 
