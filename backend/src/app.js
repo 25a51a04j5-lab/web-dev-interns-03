@@ -5,12 +5,14 @@ const express = require('express');
 const authRoutes = require('./routes/authRoutes');
 const protectedRoutes = require('./routes/protectedRoutes');
 const { notFoundHandler, errorHandler } = require('./middleware/errorHandler');
+const candidateRoutes = require('./routes/candidateRoutes');
 
 const app = express();
 app.use(express.json({ limit: '100kb' }));
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 app.use('/api/auth', authRoutes);
+app.use('/api/candidates', candidateRoutes);
 app.use('/api', protectedRoutes);
 
 app.use(notFoundHandler);
