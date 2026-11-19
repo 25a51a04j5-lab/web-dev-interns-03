@@ -44,6 +44,7 @@ const changeStatus = wrap(async (req, res) => {
   const job = await jobService.changeStatus(
     validateJobId(req.params.id),
     validateStatus(req.body.status),
+    req.user,
   );
   res.json({ job });
 });

@@ -35,9 +35,16 @@ async function updateJob(id, data, user) {
   return jobRepository.update(id, data);
 }
 
-async function changeStatus(id, status) {
-  const job = await jobRepository.findById(id);
+async function changeStatus(id, status, user) {
+  const companyId = user.companyId || 1;
+  const job = await jobRepository.findById(id, { companyId });
   if (!job) throw AppError.notFound('Job not found');
+  if (job.status === 'ARCHIVED') {
+    throw new AppError(422, 'INVALID_TRANSITION', 'Archived jobs are final and cannot be changed');
+  }
+  if (status === 'PUBLISHED' && job.status !== 'DRAFT') {
+    throw new AppError(422, 'INVALID_TRANSITION', 'Only draft jobs can be published');
+  }
   if (!transitions[job.status].includes(status)) {
     throw new AppError(422, 'INVALID_TRANSITION', `Cannot move job from ${job.status} to ${status}`);
   }
