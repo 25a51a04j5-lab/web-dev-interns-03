@@ -5,8 +5,8 @@ const { requirePermission } = require('../middleware/requireRole');
 
 const router = express.Router();
 
-router.get('/', controller.list);
-router.get('/:id', controller.get);
+router.get('/', authenticate.optional, controller.list);
+router.get('/:id', authenticate.optional, controller.get);
 router.post('/', authenticate, requirePermission('job:manage'), controller.create);
 router.patch('/:id', authenticate, requirePermission('job:manage'), controller.update);
 router.post('/:id/status', authenticate, requirePermission('job:manage'), controller.changeStatus);
