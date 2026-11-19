@@ -16,7 +16,7 @@ Express REST API
       +--> Repositories
       |
       v
-PostgreSQL or MySQL database
+MySQL database
 
 Private resume storage
       ^
