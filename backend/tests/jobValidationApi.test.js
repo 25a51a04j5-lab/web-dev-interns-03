@@ -17,6 +17,7 @@ async function hrToken() {
     email: 'validation-hr@example.com',
     password: PASSWORD,
     role: 'HR',
+    companyId: 1,
   });
   const login = await request(app).post('/api/auth/login').send({
     email: 'validation-hr@example.com',

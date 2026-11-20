@@ -12,7 +12,7 @@ async function tokenFor(name, email, role) {
     const result = await authService.registerCandidate({ name, email, password: PASSWORD });
     return { token: result.token, id: result.user.id };
   }
-  await authService.createStaff({ name, email, password: PASSWORD, role });
+  await authService.createStaff({ name, email, password: PASSWORD, role, companyId: 1 });
   const response = await request(app).post('/api/auth/login').send({ email, password: PASSWORD });
   return { token: response.body.token };
 }
