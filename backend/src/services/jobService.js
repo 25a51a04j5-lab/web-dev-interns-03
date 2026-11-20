@@ -8,24 +8,39 @@ const transitions = {
   ARCHIVED: [],
 };
 
+const { can } = require('../config/permissions');
+
+function requireCompanyScope(user) {
+  if (!user || !can(user.role, 'job:manage')) {
+    throw AppError.forbidden();
+  }
+  if (!Number.isInteger(user.companyId) || user.companyId <= 0) {
+    throw AppError.forbidden('Staff accounts must belong to a company');
+  }
+  return user.companyId;
+}
+
 async function getVisibleJob(id, user) {
-  const isStaff = user && (user.role === 'ADMIN' || user.role === 'HR');
+  const isStaff = user && can(user.role, 'job:view-unpublished');
   const job = await jobRepository.findById(id);
   if (!job) throw AppError.notFound('Job not found');
   if (job.status === 'PUBLISHED') return job;
   if (!isStaff) throw AppError.notFound('Job not found');
 
-  const companyId = user.companyId || 1;
-  if (job.companyId !== companyId) throw AppError.notFound('Job not found');
+  if (!Number.isInteger(user.companyId) || user.companyId <= 0) {
+    throw AppError.notFound('Job not found');
+  }
+  if (job.companyId !== user.companyId) throw AppError.notFound('Job not found');
   return job;
 }
 
 async function createJob(data, user) {
-  return jobRepository.create({ ...data, companyId: user.companyId || 1, createdBy: user.id });
+  const companyId = requireCompanyScope(user);
+  return jobRepository.create({ ...data, companyId, createdBy: user.id });
 }
 
 async function updateJob(id, data, user) {
-  const companyId = user.companyId || 1;
+  const companyId = requireCompanyScope(user);
   const job = await jobRepository.findById(id, { companyId });
   if (!job) throw AppError.notFound('Job not found');
   if (job.status === 'ARCHIVED') throw AppError.conflict('Archived jobs cannot be edited');
@@ -36,7 +51,7 @@ async function updateJob(id, data, user) {
 }
 
 async function changeStatus(id, status, user) {
-  const companyId = user.companyId || 1;
+  const companyId = requireCompanyScope(user);
   const job = await jobRepository.findById(id, { companyId });
   if (!job) throw AppError.notFound('Job not found');
   if (job.status === 'ARCHIVED') {
