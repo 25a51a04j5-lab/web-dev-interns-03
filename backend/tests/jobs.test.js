@@ -7,7 +7,7 @@ const userRepository = require('../src/repositories/userRepository');
 const PASSWORD = 'Passw0rdOK';
 
 async function login(name, email, role) {
-  await authService.createStaff({ name, email, password: PASSWORD, role });
+  await authService.createStaff({ name, email, password: PASSWORD, role, companyId: 1 });
   const response = await request(app).post('/api/auth/login').send({ email, password: PASSWORD });
   return response.body.token;
 }
