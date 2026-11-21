@@ -22,7 +22,11 @@ jest.mock('../src/middleware/authenticate', () => {
     const role = req.headers['x-test-role'];
 
     if (role) {
-      req.user = { id: 99, role };
+      req.user = {
+        id: 99,
+        role,
+        companyId: role === 'HR' ? 7 : null,
+        };
       return next();
     }
 
@@ -92,6 +96,7 @@ describe('Application search API', () => {
     expect(response.status).toBe(200);
     expect(response.body.applications).toHaveLength(3);
     expect(response.body.pagination.total).toBe(3);
+    expect(applicationRepository.list).toHaveBeenCalledWith({ companyId: 7 });
   });
 
   test('filters applications by job, stage and candidate name', async () => {

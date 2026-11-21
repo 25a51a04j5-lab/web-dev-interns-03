@@ -305,37 +305,4 @@ VALUES
     '2026-11-11T16:00:01Z'
   );
 
-SELECT setval(
-  pg_get_serial_sequence('companies', 'id'),
-  (SELECT MAX(id) FROM companies)
-);
-SELECT setval(
-  pg_get_serial_sequence('users', 'id'),
-  (SELECT MAX(id) FROM users)
-);
-SELECT setval(
-  pg_get_serial_sequence('jobs', 'id'),
-  (SELECT MAX(id) FROM jobs)
-);
-SELECT setval(
-  pg_get_serial_sequence('applications', 'id'),
-  (SELECT MAX(id) FROM applications)
-);
-SELECT setval(
-  pg_get_serial_sequence('resumes', 'id'),
-  (SELECT MAX(id) FROM resumes)
-);
-SELECT setval(
-  pg_get_serial_sequence('interviews', 'id'),
-  (SELECT MAX(id) FROM interviews)
-);
-SELECT setval(
-  pg_get_serial_sequence('offers', 'id'),
-  (SELECT MAX(id) FROM offers)
-);
-SELECT setval(
-  pg_get_serial_sequence('onboarding_tasks', 'id'),
-  (SELECT MAX(id) FROM onboarding_tasks)
-);
-
 COMMIT;

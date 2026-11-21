@@ -1,10 +1,20 @@
 
 const searchRepository = require('../repositories/searchRepository');
 const { parseSearchQuery } = require('../utils/queryHelper');
+const AppError = require('../utils/AppError');
 
-async function searchApplications(query = {}) {
+async function searchApplications(query = {}, user = {}) {
   const filters = parseSearchQuery(query);
-  const records = await searchRepository.listSearchRecords();
+
+  if (
+    user.role === 'HR'
+    && (user.companyId === undefined || user.companyId === null)
+  ) {
+    throw AppError.forbidden('HR account is not associated with a company');
+  }
+
+  const companyId = user.role === 'HR' ? user.companyId : undefined;
+  const records = await searchRepository.listSearchRecords({ companyId });
 
   let results = records.filter((application) => {
     if (filters.jobId !== undefined && Number(application.jobId) !== filters.jobId) {

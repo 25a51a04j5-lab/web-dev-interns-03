@@ -4,9 +4,9 @@ const jobs = new Map();
 let nextId = 1;
 
 const STATUS_COLUMNS = {
-  PUBLISHED: 'status = $2, published_at = COALESCE(published_at, NOW())',
-  CLOSED: 'status = $2',
-  ARCHIVED: 'status = $2, archived_at = NOW()',
+  PUBLISHED: 'status = ?, published_at = COALESCE(published_at, NOW())',
+  CLOSED: 'status = ?',
+  ARCHIVED: 'status = ?, archived_at = NOW()',
 };
 
 function toJob(row) {
@@ -30,15 +30,15 @@ function toJob(row) {
 
 async function create(data) {
   if (database.isDatabaseConfigured()) {
-    const { rows } = await database.query(
+    const { insertId } = await database.query(
       `INSERT INTO jobs
         (company_id, created_by, title, description, requirements, location, employment_type, closes_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-       RETURNING *`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [data.companyId, data.createdBy, data.title, data.description, data.requirements,
         data.location, data.employmentType, data.closesAt],
     );
-    return toJob(rows[0]);
+    const { rows: created } = await database.query('SELECT * FROM jobs WHERE id = ?', [insertId]);
+    return toJob(created[0]);
   }
   const now = new Date().toISOString();
   const job = { id: nextId++, ...data, status: 'DRAFT', publishedAt: null, archivedAt: null, createdAt: now, updatedAt: now };
@@ -53,7 +53,7 @@ async function list({ includeUnpublished = false, companyId } = {}) {
     if (!includeUnpublished) conditions.push(`status = 'PUBLISHED'`);
     if (companyId !== undefined && companyId !== null) {
       values.push(companyId);
-      conditions.push(`company_id = $${values.length}`);
+      conditions.push('company_id = ?');
     }
     const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
     const { rows } = await database.query(
@@ -76,10 +76,10 @@ async function findById(id, { companyId } = {}) {
     const values = [id];
     const companyClause = companyId === undefined || companyId === null
       ? ''
-      : ' AND company_id = $2';
+      : ' AND company_id = ?';
     if (companyClause) values.push(companyId);
     const { rows } = await database.query(
-      `SELECT * FROM jobs WHERE id = $1${companyClause}`,
+      `SELECT * FROM jobs WHERE id = ?${companyClause}`,
       values,
     );
     return toJob(rows[0]);
@@ -103,20 +103,20 @@ async function update(id, data) {
     };
     const entries = Object.entries(data).filter(([key]) => fields[key]);
     if (!entries.length) return findById(id);
-    const values = [id];
+    const values = [];
     const assignments = entries.map(([key, value], index) => {
       values.push(value);
-      return `${fields[key]} = $${index + 2}`;
+      return `${fields[key]} = ?`;
     });
+    values.push(id);
     const { rows } = await database.query(
       `UPDATE jobs
        SET ${assignments.join(', ')},
            updated_at = NOW()
-       WHERE id = $1
-       RETURNING *`,
+       WHERE id = ?`,
       values,
     );
-    return toJob(rows[0]);
+    return findById(id);
   }
   const job = jobs.get(Number(id));
   if (!job) return null;
@@ -129,10 +129,10 @@ async function setStatus(id, status) {
   if (database.isDatabaseConfigured()) {
     const { rows } = await database.query(
       `UPDATE jobs SET ${STATUS_COLUMNS[status]}, updated_at = NOW()
-       WHERE id = $1 RETURNING *`,
-      [id, status],
+       WHERE id = ?`,
+      [status, id],
     );
-    return toJob(rows[0]);
+    return findById(id);
   }
   const job = jobs.get(Number(id));
   if (!job) return null;

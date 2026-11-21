@@ -3,11 +3,11 @@ const applicationRepository = require('./applicationRepository');
 const userRepository = require('./userRepository');
 const jobRepository = require('./jobRepository');
 
-async function listSearchRecords() {
+async function listSearchRecords({ companyId } = {}) {
   const [applications, users, jobs] = await Promise.all([
-    applicationRepository.list(),
+    applicationRepository.list({ companyId }),
     userRepository.list(),
-    jobRepository.list({ includeUnpublished: true }),
+    jobRepository.list({ includeUnpublished: true, companyId }),
   ]);
 
   const usersById = new Map(users.map((user) => [Number(user.id), user]));

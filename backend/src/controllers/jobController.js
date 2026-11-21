@@ -1,6 +1,6 @@
 const jobService = require('../services/jobService');
 const jobRepository = require('../repositories/jobRepository');
-const { ROLES } = require('../config/permissions');
+const { can } = require('../config/permissions');
 const {
   validateJobCreate,
   validateJobId,
@@ -11,7 +11,7 @@ const {
 const wrap = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 
 const list = wrap(async (req, res) => {
-  const isStaff = req.user && [ROLES.ADMIN, ROLES.HR].includes(req.user.role);
+  const isStaff = req.user && can(req.user.role, 'job:view-unpublished');
   res.json({
     jobs: await jobRepository.list({
       includeUnpublished: Boolean(isStaff),
@@ -44,6 +44,7 @@ const changeStatus = wrap(async (req, res) => {
   const job = await jobService.changeStatus(
     validateJobId(req.params.id),
     validateStatus(req.body.status),
+    req.user,
   );
   res.json({ job });
 });
