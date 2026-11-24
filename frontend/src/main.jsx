@@ -48,17 +48,19 @@ const roleContent = {
   },
 };
 
+
 const navigation = [
-  ['Overview', '⌂'],
+  ['Overview', '◈'],
   ['Jobs', '▤'],
   ['Applications', '▣'],
   ['Candidates', '♙'],
   ['Interviews', '◷'],
   ['Analytics', '▥'],
-  ['Public Jobs',''],
-  ['Candidate Portal', '']
+  ['Public Jobs', ''],
+  ['Candidate Portal', ''],
   ['Candidate Dashboard', '']
 ];
+
 
 const activities = [
   {
