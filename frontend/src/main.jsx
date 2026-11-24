@@ -58,7 +58,7 @@ const navigation = [
   ['Analytics', '▥'],
   ['Public Jobs', ''],
   ['Candidate Portal', ''],
-  ['Candidate Dashboard', '']
+  ['Candidate Dashboard', ''],
 ];
 
 
