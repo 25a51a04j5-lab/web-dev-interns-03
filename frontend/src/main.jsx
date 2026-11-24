@@ -58,7 +58,11 @@ const navigation = [
   ['Analytics', '▥'],
   ['Public Jobs', ''],
   ['Candidate Portal', ''],
+<<<<<<< Updated upstream
   ['Candidate Dashboard', '']
+=======
+  ['Candidate Dashboard', ''],
+>>>>>>> Stashed changes
 ];
 
 
