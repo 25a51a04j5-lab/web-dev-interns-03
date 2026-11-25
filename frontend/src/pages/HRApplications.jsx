@@ -1,6 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { api } from '../api/client';
+import ActivityTimeline from '../components/ActivityTimeline';
 
 const stages = [
   'APPLIED',
@@ -17,6 +18,8 @@ function HRApplications() {
   const [filter, setFilter] = useState('ALL');
   const [selected, setSelected] = useState(null);
   const [history, setHistory] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyError, setHistoryError] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
@@ -42,12 +45,16 @@ function HRApplications() {
   async function openHistory(application) {
     setSelected(application);
     setHistory([]);
+    setHistoryLoading(true);
+    setHistoryError('');
     setMessage('');
     try {
       const data = await api.get(`/applications/${application.id}/history`);
       setHistory(data.history || []);
     } catch (err) {
-      setError(err.message || 'Unable to load application history.');
+      setHistoryError(err.message || 'Unable to load application history.');
+    } finally {
+      setHistoryLoading(false);
     }
   }
 
@@ -67,11 +74,18 @@ function HRApplications() {
         const updated = await api.get(`/applications/${applicationId}`);
         const application = updated.application;
         setSelected(application);
+        setHistoryLoading(true);
+        setHistoryError('');
         const historyData = await api.get(`/applications/${applicationId}/history`);
         setHistory(historyData.history || []);
+        setHistoryLoading(false);
       }
     } catch (err) {
       setError(err.message || 'Unable to update application stage.');
+      if (selected?.id === applicationId) {
+        setHistoryError(err.message || 'Unable to refresh application history.');
+        setHistoryLoading(false);
+      }
     } finally {
       setUpdating(false);
     }
@@ -241,25 +255,19 @@ function HRApplications() {
             {selected.coverLetter || 'No cover letter provided.'}
           </p>
 
-          <h3>Stage history</h3>
-          {history.length === 0 ? (
-            <p className="muted">No history entries available.</p>
-          ) : (
-            <div className="history-list">
-              {history.map((entry) => (
-                <div className="history-item" key={entry.id}>
-                  <span className="history-marker" />
-                  <div>
-                    <strong>
-                      {entry.previousStage || 'START'} → {entry.newStage}
-                    </strong>
-                    <p className="muted">{entry.note || 'Stage updated'}</p>
-                    <small>{formatDate(entry.changedAt)}</small>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          <h3>Activity timeline</h3>
+          <ActivityTimeline
+            items={history.map((entry) => ({
+              id: entry.id,
+              title: `${entry.previousStage || 'START'} → ${entry.newStage}`,
+              description: entry.note || 'Stage updated',
+              actorLabel: entry.changedBy ? `User #${entry.changedBy}` : '',
+              occurredAt: entry.changedAt,
+            }))}
+            loading={historyLoading}
+            error={historyError}
+            emptyMessage="No application activity has been recorded yet."
+          />
         </section>
       )}
     </div>
