@@ -1504,18 +1504,35 @@ button:active {
   color: #496765;
   white-space: pre-wrap;
 }
-.history-list {
+.activity-timeline {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  margin-top: 18px;
+  gap: 0;
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
 }
-.history-item {
+.activity-timeline-item {
+  position: relative;
   display: flex;
   gap: 12px;
   align-items: flex-start;
+  min-height: 66px;
+  padding-bottom: 18px;
 }
-.history-marker {
+.activity-timeline-item:not(:last-child)::before {
+  position: absolute;
+  top: 11px;
+  bottom: 0;
+  left: 4px;
+  width: 1px;
+  background: #dcebe8;
+  content: '';
+}
+.activity-timeline-marker {
+  position: relative;
+  z-index: 1;
   width: 10px;
   height: 10px;
   margin-top: 5px;
@@ -1523,10 +1540,15 @@ button:active {
   border-radius: 50%;
   background: #22a69c;
 }
-.history-item p {
-  margin: 5px 0;
+.activity-timeline-content {
+  display: grid;
+  gap: 5px;
 }
-.history-item small {
+.activity-timeline-content p {
+  margin: 5px 0;
+  color: #496765;
+}
+.activity-timeline-content small {
   color: #829795;
 }
 @media (max-width: 850px) {
