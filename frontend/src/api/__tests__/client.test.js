@@ -32,6 +32,9 @@ describe('API Client', () => {
       json: async () => ({ message: 'Server error' }),
     }));
 
-    await expect(api.get('/health')).rejects.toThrow('Server error');
+    await expect(api.get('/health')).rejects.toMatchObject({
+      message: 'Server error',
+      status: 500,
+    });
   });
 });

@@ -8,6 +8,7 @@ import HRSearch from './pages/HRSearch';
 import PublicJobs from './pages/PublicJobs';
 import CandidatePortal from './pages/CandidatePortal';
 import CandidateDashboard from './pages/CandidateDashboard';
+import HROffers from './pages/HROffers';
 
 const roleContent = {
   ADMIN: {
@@ -54,6 +55,7 @@ const navigation = [
   ['Jobs', '▤'],
   ['Applications', '▣'],
   ['Candidates', '♙'],
+  ['Offers & Onboarding', '✓'],
   ['Interviews', '◷'],
   ['Analytics', '▥'],
   ['Public Jobs', ''],
@@ -112,7 +114,9 @@ function App() {
         <p className="sidebar-label">WORKSPACE</p>
 
         <nav aria-label="Main navigation">
-          {navigation.map(([label, icon]) => (
+          {navigation
+            .filter(([label]) => label !== 'Offers & Onboarding' || role !== 'CANDIDATE')
+            .map(([label, icon]) => (
             <button
               key={label}
               className={`nav-item ${activePage === label ? 'active' : ''}`}
@@ -124,7 +128,7 @@ function App() {
                 <span className="nav-count">12</span>
               )}
             </button>
-          ))}
+            ))}
         </nav>
 
         <div className="sidebar-bottom">
@@ -351,7 +355,9 @@ function App() {
                 <HRApplications />
                 ) : activePage === 'Candidates' ? (
                 <HRSearch />
-                ) : activePage === 'Public Jobs' ? (
+                ) : activePage === 'Offers & Onboarding' ? (
+                  <HROffers />
+                  ) : activePage === 'Public Jobs' ? (
                 <PublicJobs />
               ) : activePage === 'Candidate Portal' ? (
                 <CandidatePortal />
