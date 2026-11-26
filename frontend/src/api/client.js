@@ -52,7 +52,9 @@ export async function apiRequest(endpoint, options = {}) {
     data?.message ||
     (typeof data?.error === 'string' ? data.error : null) ||
     `Request failed with status ${response.status}`;
-        throw new Error(message);
+    const error = new Error(message);
+    error.status = response.status;
+    throw error;
     }
 
   return data;
