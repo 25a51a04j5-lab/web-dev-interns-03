@@ -1599,6 +1599,115 @@ button:active {
 .onboarding-notice p:last-child {
   margin-bottom: 0;
 }
+.candidate-offer-lookup-form {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+}
+.candidate-offer-lookup-form label,
+.candidate-offer-response label {
+  display: grid;
+  flex: 1;
+  gap: 7px;
+  color: #315457;
+  font-size: 12px;
+  font-weight: 700;
+}
+.candidate-offer-lookup-form input,
+.candidate-offer-response textarea {
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid #d7e7e6;
+  border-radius: 9px;
+  background: white;
+  color: #164b4c;
+}
+.candidate-offer-help {
+  margin-bottom: 0;
+  font-size: 12px;
+}
+.candidate-offer-details {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 20px 0;
+}
+.candidate-offer-details div {
+  padding: 14px;
+  border-radius: 9px;
+  background: #f3faf9;
+}
+.candidate-offer-details dt {
+  margin-bottom: 7px;
+  color: #82999a;
+  font-size: 11px;
+}
+.candidate-offer-details dd {
+  margin: 0;
+  color: #244c4f;
+  font-size: 13px;
+  font-weight: 700;
+}
+.candidate-offer-terms,
+.candidate-offer-letter {
+  margin-top: 20px;
+}
+.candidate-offer-terms h3,
+.candidate-offer-letter h3 {
+  margin: 0 0 10px;
+  color: #123b42;
+}
+.candidate-offer-terms p {
+  color: #496765;
+  white-space: pre-wrap;
+}
+.candidate-offer-letter {
+  padding: 18px;
+  border: 1px solid #e5f0ef;
+  border-radius: 10px;
+  background: #f8fcfb;
+}
+.candidate-offer-letter pre {
+  max-height: 480px;
+  overflow: auto;
+  margin: 0;
+  color: #496765;
+  font: inherit;
+  line-height: 1.65;
+  white-space: pre-wrap;
+}
+.candidate-offer-response {
+  display: grid;
+  gap: 16px;
+  margin-top: 22px;
+}
+.candidate-offer-response textarea {
+  resize: vertical;
+}
+.candidate-offer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.candidate-offer-decline {
+  padding: 10px 15px;
+  border: 1px solid #efcfcd;
+  border-radius: 9px;
+  background: #fff7f6;
+  color: #a5413b;
+  font-weight: 700;
+}
+.candidate-offer-decline:hover {
+  background: #ffedeb;
+}
+.candidate-offer-decline:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+.candidate-offer-closed {
+  margin-top: 20px;
+}
 .application-detail-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -1677,6 +1786,9 @@ button:active {
   .offer-layout {
     grid-template-columns: 1fr;
   }
+  .candidate-offer-details {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 @media (max-width: 550px) {
   .hr-stat-grid,
@@ -1690,6 +1802,22 @@ button:active {
     grid-template-columns: 1fr;
   }
   .offer-application-picker {
+    width: 100%;
+  }
+  .candidate-offer-lookup-form {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .candidate-offer-lookup-form button {
+    width: 100%;
+  }
+  .candidate-offer-details {
+    grid-template-columns: 1fr;
+  }
+  .candidate-offer-actions {
+    flex-direction: column;
+  }
+  .candidate-offer-actions button {
     width: 100%;
   }
 }
