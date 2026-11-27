@@ -9,6 +9,7 @@ import PublicJobs from './pages/PublicJobs';
 import CandidatePortal from './pages/CandidatePortal';
 import CandidateDashboard from './pages/CandidateDashboard';
 import HROffers from './pages/HROffers';
+import CandidateOffers from './pages/CandidateOffers';
 
 const roleContent = {
   ADMIN: {
@@ -56,6 +57,7 @@ const navigation = [
   ['Applications', '▣'],
   ['Candidates', '♙'],
   ['Offers & Onboarding', '✓'],
+  ['My Offer', '✓'],
   ['Interviews', '◷'],
   ['Analytics', '▥'],
   ['Public Jobs', ''],
@@ -115,7 +117,11 @@ function App() {
 
         <nav aria-label="Main navigation">
           {navigation
-            .filter(([label]) => label !== 'Offers & Onboarding' || role !== 'CANDIDATE')
+            .filter(([label]) => (
+              label !== 'Offers & Onboarding' || role === 'ADMIN' || role === 'HR'
+            ) && (
+              label !== 'My Offer' || role === 'CANDIDATE'
+            ))
             .map(([label, icon]) => (
             <button
               key={label}
@@ -357,7 +363,9 @@ function App() {
                 <HRSearch />
                 ) : activePage === 'Offers & Onboarding' ? (
                   <HROffers />
-                  ) : activePage === 'Public Jobs' ? (
+                ) : activePage === 'My Offer' ? (
+                  <CandidateOffers />
+                    ) : activePage === 'Public Jobs' ? (
                 <PublicJobs />
               ) : activePage === 'Candidate Portal' ? (
                 <CandidatePortal />
